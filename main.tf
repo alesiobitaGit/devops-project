@@ -1,17 +1,55 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 3.10"
+    }
+  }
+}
+
 provider "aws" {
   access_key = var.access_key
   secret_key = var.secret_key
   region     = var.region
 }
 
+resource "aws_s3_bucket" "bucket" {
+  bucket = "priv-jenkings"
+
+  tags = {
+    Name        = "priv-jenkings"
+    Environment = "Dev"
+  }
+}
+
+resource "aws_s3_bucket_acl" "bucket_acl" {
+  bucket = aws_s3_bucket.bucket.id
+  acl    = "private"
+}
+
+/*
 data "terraform_remote_state" "tfstate" {
   backend = "s3"
-  config {
-    bucket = "myterraform-scripts"
-    key    = "terraform/terraform-tfstate"
+
+  config = {
+    bucket = "priv-jenkins"
+    key    = "terraform/terraform.tfstate"
     region = "us-east-1"
   }
 }
+*/
+data "aws_vpc" "selected" {
+  id = var.vpc_id
+
+}
+
+resource "aws_subnet" "example" {
+  vpc_id            = data.aws_vpc.selected.id
+  availability_zone = "us-east-1a"
+  cidr_block        = cidrsubnet(data.aws_vpc.selected.cidr_block, 4, 1)
+}
+
+
 
 resource "aws_vpc" "main" {
   cidr_block                       = var.cidr_block
@@ -19,6 +57,7 @@ resource "aws_vpc" "main" {
   enable_dns_support               = true
   enable_dns_hostnames             = var.enable_dns_hostnames
   assign_generated_ipv6_cidr_block = true
+
 
   tags = merge(
     var.tags,
@@ -28,10 +67,14 @@ resource "aws_vpc" "main" {
   )
 }
 
-resource "aws_security_group" "jenkings_sg" {
+data "aws_vpc_endpoint_service" "s3" {
+  service      = "s3"
+  service_type = "Gateway"
+}
+resource "aws_security_group" "sg_jenkins" {
   name        = "sg_${var.jenkins_name}"
   description = "Allow Jenkings SG"
-  vpc_id      = "var.vpc_id"
+  vpc_id      = var.vpc_id
 
   ingress {
     description = "Allow ssh access"
@@ -80,18 +123,18 @@ resource "aws_security_group" "jenkings_sg" {
 }
 
 data "template_file" "user_data" {
-  template = "${file("templates/user_data.tpl")}"
+  template = file("/Users/user/Desktop/DevOps/devops-project/templates/user_data.tpf")
 }
 
 resource "aws_instance" "jenkings_ec2" {
   instance_type   = var.instance_type
-  security_groups = ["${aws_security_group.jenkings_sg}"]
+  security_groups = ["${aws_security_group.sg_jenkins.name}"]
   ami             = lookup(var.amis, var.region)
   key_name        = var.key_name
   user_data       = data.template_file.user_data.rendered
 
   tags = {
-    name = "${var.jenkins_name}"
+    name = var.jenkins_name
   }
 
   #add backup task to crontab
