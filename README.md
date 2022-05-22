@@ -6,7 +6,7 @@ The terraform script stores the terraform state remotely in an S3 bucket. The Ma
 #Usage
 Before you run the Makefile, you should set the following environment variables to authenticate with AWS:
 
-export AWS_ACCESS_KEY_ID= <your key> # to store and retrieve the remote state in s3.
+$ export AWS_ACCESS_KEY_ID= <your key> # to store and retrieve the remote state in s3.
 $ export AWS_SECRET_ACCESS_KEY= <your secret>
 $ export AWS_DEFAULT_REGION= <your bucket region e.g. us-west-2>
 $ export TF_VAR_access_key=$AWS_ACCESS_KEY # exposed as access_key in terraform scripts
