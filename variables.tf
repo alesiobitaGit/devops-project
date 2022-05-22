@@ -50,12 +50,12 @@ variable "instance_type" {
 
 variable "key_name" {
   description = "ssh of aws acc"
-  default     = "jenkings"
+  default     = "jenkins"
 }
 
 variable "s3_bucket" {
   description = "s3 bucket"
-  default     = "myterraform-scripts"
+  default     = "priv-jenkins"
 }
 
 variable "vpc_id" {}
@@ -63,6 +63,7 @@ variable "vpc_id" {}
 variable "cidr_block" {
   description = "The CIDR block for the VPC."
   type        = string
+  default     = "10.0.0.0/16"
 }
 
 variable "enable_dns_hostnames" {
