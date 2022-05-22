@@ -57,8 +57,14 @@ variable "cidr_block" {
   type        = string
 }
 
-ariable "enable_dns_hostnames" {
+variable "enable_dns_hostnames" {
   description = "A boolean flag to enable/disable DNS hostnames in the VPC."
   type        = bool
   default     = false
+}
+
+variable "tags" {
+  description = "A map of tags (key-value pairs) passed to resources."
+  type        = map(string)
+  default     = {}
 }
